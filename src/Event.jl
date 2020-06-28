@@ -3,9 +3,10 @@ using Dates
 abstract type Event end
 
 struct Position
-    Required_Qualifications::AbstractArray{Qualification}
-    Position(rq::AbstractArray{Qualification}) = new(rq)
-    Position() = new([])
+    Name::AbstractString
+    RequiredQualifications::AbstractArray{AbstractString}
+    Position(name::AbstractString,rq::AbstractArray{String}) = new(name,rq)
+    Position(name::AbstractString) = new(name,AbstractString[])
 end
 
 mutable struct FlightEvent <: Event
@@ -16,14 +17,14 @@ mutable struct FlightEvent <: Event
     FlightEvent(
         s::DateTime,
         e::DateTime,
-        pos::AbstractArray{Position}
-    ) = new(s,e,pos,[])
-    FlightEvent(
-        s::DateTime,
-        e::DateTime,
         pos::AbstractArray{Position},
         part::AbstractArray{Aircrew}
     ) = new(s,e,pos,part)
+    FlightEvent(
+        s::DateTime,
+        e::DateTime,
+        pos::AbstractArray{Position}
+    ) = FlightEvent(s,e,pos,Aircrew[])
 end
 
 mutable struct GroundEvent <: Event
@@ -33,12 +34,12 @@ mutable struct GroundEvent <: Event
     GroundEvent(
         s::Date,
         e::Date,
-    ) = new(s,e,[])
+        part::AbstractArray{Aircrew}
+    ) = new(s,e,part)
     GroundEvent(
         s::Date,
         e::Date,
-        part::AbstractArray{Aircrew}
-    ) = new(s,e,part)
+    ) = GroundEvent(s,e,Aircrew[])
 end
 
 # isValidPerson(::Position, ::Person)
@@ -46,13 +47,22 @@ end
 #     Compares if the person has the required qualifications for the position.
 #     Returns True if they do
 #     Returns False if they do not
-function isValidPerson(position::Position,person::Person)
+function isValidPerson(event::Event,position::Position,person::Person)
     if !isdefined(person,:Qualifications)
         return false
     end
-    for qual in position.Required_Qualifications
+    if position.RequiredQualifications == []
+        return true
+    end
+    for qual in position.RequiredQualifications
         if !(qual ∈ person.Qualifications)
             return false
+        else
+            for pqual in person.Qualifications[qual .== person.Qualifications]
+                if pqual.CanExpire && (event.Start < pqual.Granted || pqual.Expires < event.End)
+                    return false
+                end
+            end
         end
     end
     return true

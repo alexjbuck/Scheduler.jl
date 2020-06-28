@@ -4,49 +4,82 @@ using Dates
 
 @testset "Initializers" begin
     # Write your tests here.
-    HAC = Qualification("HAC", Date(2020,1,1), Date(2020,6,1))
+    HAC = Qualification("HAC", Date(2019,1,1), Date(2020,6,1))
     @test HAC.Name == "HAC"
-    @test HAC.Granted == Date(2020,1,1)
+    @test HAC.Granted == Date(2019,1,1)
     @test HAC.Expires == Date(2020,6,1)
+    @test HAC.CanExpire == true
 
     ANI = Qualification("ANI")
     @test ANI.Name == "ANI"
-    @test ismissing(ANI.Granted)
-    @test ismissing(ANI.Expires)
+    @test ANI.Granted == Date(0)
+    @test ANI.Expires == Date(0)
+    @test ANI.CanExpire == false
 
-    crew = Aircrew("Alex",[HAC,ANI])
+    FCP = Qualification("FCP",Date(2018,1,1))
+    @test FCP.Name == "FCP"
+    @test FCP.Granted == Date(2018,1,1)
+    @test FCP.Expires == Date(0)
+    @test FCP.CanExpire == false
+
+    crew = Aircrew("Alex",[HAC,ANI,FCP])
     @test crew.Name == "Alex"
-    @test crew.Qualifications == [HAC,ANI]
+    @test crew.Qualifications == [HAC,ANI,FCP]
 
-    crew = Aircrew()
+    crew = Aircrew("old")
+    @test crew.Name == "old"
+    @test crew.Qualifications == []
     crew.Name = "hi"
     @test crew.Name == "hi"
+    @test crew.Qualifications == []
 
-    position_HAC = Position([HAC])
-    @test position_HAC.Required_Qualifications == [HAC]
+    pos1 = Position("Pilot",["HAC","ANI"])
+    @test pos1.RequiredQualifications == ["HAC","ANI"]
 
     evt = FlightEvent(
         DateTime(2020,1,1,8,0,0,0),
         DateTime(2020,1,1,10,0,0,0),
-        [Position([HAC]),Position()]
+        [Position("Pilot",["HAC","FCP"]),Position("Copilot")]
     )
     @test evt.Start == DateTime(2020,1,1,8,0,0,0)
     @test evt.End == DateTime(2020,1,1,10,0,0,0)
-    @test evt.Positions[1].Required_Qualifications == [HAC]
-    @test evt.Positions[2].Required_Qualifications == []
+    @test length(evt.Positions) == 2
+    @test evt.Positions[1].RequiredQualifications == ["HAC","FCP"]
+    @test evt.Positions[2].RequiredQualifications == []
 end
 
 @testset "Comparisons" begin
-    qual1 = Qualification("Qual1")
-    qual2 = Qualification("Qual2")
-    @test true  == Scheduler.isValidPerson(Position(), Aircrew("Alex",[qual1]))
-    @test false == Scheduler.isValidPerson(Position([qual1]), Aircrew())
-    @test true  == Scheduler.isValidPerson(Position([qual1]), Aircrew("Alex",[qual1]))
-    @test false == Scheduler.isValidPerson(Position([qual1,qual2]), Aircrew("Alex",[qual1]))
-    @test true  == Scheduler.isValidPerson(Position([qual1,qual2]), Aircrew("Alex",[qual1,qual2]))
-    @test true  == Scheduler.isValidPerson(Position([qual1]), Aircrew("Alex",[qual1,qual2]))
+    Alex = Aircrew("Alex",[Qualification("HAC"),Qualification("ANI"),Qualification("FCP")])
+    Drew = Aircrew("Drew",[Qualification("HAC",Date(0),Date(2020,1,1))])
+    John = Aircrew("John",[Qualification("HAC",Date(0),Date(2020,2,2))])
+    Eric = Aircrew("Eric")
+    Bill = NonAircrew("Bill")
+    pilot = Position("Pilot",["HAC"])
+    copilot = Position("Copilot")
+    evt = FlightEvent(
+        DateTime(2020,1,1,8),
+        DateTime(2020,1,1,10),
+        [pilot,copilot]
+    )
+    @test true   == Scheduler.isValidPerson(evt, pilot,   Alex)
+    @test true   == Scheduler.isValidPerson(evt, copilot, Alex)
+
+    @test false  == Scheduler.isValidPerson(evt, pilot,   Drew)
+    @test true   == Scheduler.isValidPerson(evt, copilot, Drew)
+
+    @test true   == Scheduler.isValidPerson(evt, pilot,   John)
+    @test true   == Scheduler.isValidPerson(evt, copilot, John)
+
+    @test false  == Scheduler.isValidPerson(evt, pilot,   Eric)
+    @test true   == Scheduler.isValidPerson(evt, copilot, Eric)
+
+    @test false  == Scheduler.isValidPerson(evt, pilot,   Bill)
+    @test false  == Scheduler.isValidPerson(evt, copilot, Bill)
+
 end
 
 @testset "Assigning Names" begin
+    qual1 = Qualification("Qual1")
+    qual2 = Qualification("Qual2")
 
 end
