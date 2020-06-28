@@ -48,10 +48,10 @@ using Dates
     @test evt.Positions[2].RequiredQualifications == []
 end
 
-@testset "Comparisons" begin
+@testset "isValidPersonForPosition" begin
     Alex = Aircrew("Alex",[Qualification("HAC"),Qualification("ANI"),Qualification("FCP")])
     Drew = Aircrew("Drew",[Qualification("HAC",Date(0),Date(2020,1,1))])
-    John = Aircrew("John",[Qualification("HAC",Date(0),Date(2020,2,2))])
+    John = Aircrew("John",[Qualification("HAC",Date(0),Date(2021,2,2))])
     Eric = Aircrew("Eric")
     Bill = NonAircrew("Bill")
     pilot = Position("Pilot",["HAC"])
@@ -61,25 +61,40 @@ end
         DateTime(2020,1,1,10),
         [pilot,copilot]
     )
-    @test true   == Scheduler.isValidPerson(evt, pilot,   Alex)
-    @test true   == Scheduler.isValidPerson(evt, copilot, Alex)
+    @test true   == Scheduler.isValidPersonForPosition(evt, pilot,   Alex)
+    @test true   == Scheduler.isValidPersonForPosition(evt, copilot, Alex)
 
-    @test false  == Scheduler.isValidPerson(evt, pilot,   Drew)
-    @test true   == Scheduler.isValidPerson(evt, copilot, Drew)
+    @test false  == Scheduler.isValidPersonForPosition(evt, pilot,   Drew)
+    @test true   == Scheduler.isValidPersonForPosition(evt, copilot, Drew)
 
-    @test true   == Scheduler.isValidPerson(evt, pilot,   John)
-    @test true   == Scheduler.isValidPerson(evt, copilot, John)
+    @test true   == Scheduler.isValidPersonForPosition(evt, pilot,   John)
+    @test true   == Scheduler.isValidPersonForPosition(evt, copilot, John)
 
-    @test false  == Scheduler.isValidPerson(evt, pilot,   Eric)
-    @test true   == Scheduler.isValidPerson(evt, copilot, Eric)
+    @test false  == Scheduler.isValidPersonForPosition(evt, pilot,   Eric)
+    @test true   == Scheduler.isValidPersonForPosition(evt, copilot, Eric)
 
-    @test false  == Scheduler.isValidPerson(evt, pilot,   Bill)
-    @test false  == Scheduler.isValidPerson(evt, copilot, Bill)
+    @test false  == Scheduler.isValidPersonForPosition(evt, pilot,   Bill)
+    @test false  == Scheduler.isValidPersonForPosition(evt, copilot, Bill)
 
 end
 
 @testset "Assigning Names" begin
-    qual1 = Qualification("Qual1")
-    qual2 = Qualification("Qual2")
-
+    Alex = Aircrew("Alex",[Qualification("HAC"),Qualification("ANI"),Qualification("FCP")])
+    Drew = Aircrew("Drew",[Qualification("HAC",Date(0),Date(2020,1,1))])
+    John = Aircrew("John",[Qualification("HAC",Date(0),Date(2021,2,2))])
+    Eric = Aircrew("Eric")
+    Bill = NonAircrew("Bill")
+    pilot = Position("Pilot",["HAC"])
+    copilot = Position("Copilot")
+    evt = FlightEvent(
+        DateTime(2020,1,1,8),
+        DateTime(2020,1,1,10),
+        [pilot,copilot]
+    )
+    evt = FlightEvent(
+        DateTime(2020,1,1,8),
+        DateTime(2020,1,1,10),
+        [pilot,copilot]
+    )
+    people = [Alex, Drew, John, Eric, Bill]
 end

@@ -47,21 +47,35 @@ end
 #     Compares if the person has the required qualifications for the position.
 #     Returns True if they do
 #     Returns False if they do not
-function isValidPerson(event::Event,position::Position,person::Person)
-    if !isdefined(person,:Qualifications)
+function isValidPersonForPosition(event::Event,position::Position,person::Person)
+    # Require Aircrew for FlightEvent
+    if typeof(event)==FlightEvent && typeof(person)!=Aircrew
         return false
     end
+    # Shortcut if no qualifications required, anyone is valid
     if position.RequiredQualifications == []
         return true
     end
+    # Cycle through required qualifications
     for qual in position.RequiredQualifications
+        # Check if the qualification is in persons qualifications list
         if !(qual ∈ person.Qualifications)
+            # If required qualification is not in the persons qualification list, they are not valid
             return false
         else
+            # If the required qualification IS in their list, verify its currency
+            validQual = false
+            # Get the persons qualification object that matches the required qualification
             for pqual in person.Qualifications[qual .== person.Qualifications]
-                if pqual.CanExpire && (event.Start < pqual.Granted || pqual.Expires < event.End)
-                    return false
+                # If the persons qualification cannot expire OR  its date is valid for the event time, they are valid. No need to keep searching.
+                if !pqual.CanExpire || (pqual.Granted < event.Start  && event.End < pqual.Expires)
+                    validQual = true
+                    break
                 end
+            end
+            if !validQual
+                # After looking at the persons qualification, if it is not valid for the event, they are not valid
+                return false
             end
         end
     end
