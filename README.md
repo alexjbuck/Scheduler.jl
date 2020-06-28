@@ -7,5 +7,5 @@
 [![Build Status](https://ci.appveyor.com/api/projects/status/github/alexjbuck/Scheduler.jl?svg=true)](https://ci.appveyor.com/project/alexjbuck/Scheduler-jl)
 [![Coverage](https://codecov.io/gh/alexjbuck/Scheduler.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/alexjbuck/Scheduler.jl)
 
-## An environment for developing Scheduling Algorithms for Aviation Flight Schedules
+## An environment for developing scheduling algorithms for aviation flight schedules
 This package exists for me to develop a variety of algorithms for creating flight schedules with a basic set of constraints and costs.
