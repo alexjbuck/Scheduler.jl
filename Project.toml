@@ -3,6 +3,10 @@ uuid = "6f746029-aeda-4835-a3ae-67aa964e2c8f"
 authors = ["Alexander Buck"]
 version = "0.1.0"
 
+[deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+
 [compat]
 julia = "1.4"
 
